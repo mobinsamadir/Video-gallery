@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'build/**'
 
 jobs:
   build:
@@ -13,12 +15,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Create build folder
+        run: mkdir -p build
       - name: Create ZIP
         run: |
-          zip -r site.zip . -x "*.git*" "node_modules/*"
+          zip -r build/site.zip . \
+          -x "*.git*" \
+          -x "build/*" \
+          -x "node_modules/*"
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: site-zip
-          path: site.zip
+      - name: Commit ZIP
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add build/site.zip
+          git commit -m "auto build zip"
+          git push
