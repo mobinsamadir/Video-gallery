@@ -1,7 +1,4 @@
 const gallery = document.getElementById("gallery");
-const modal = document.getElementById("modal");
-const player = document.getElementById("videoPlayer");
-const closeBtn = document.getElementById("close");
 
 fetch("videos.json")
 .then(res => res.json())
@@ -13,13 +10,16 @@ const card = document.createElement("div");
 card.className = "card";
 
 card.innerHTML = `
-<img src="${v.thumbnail}">
+<video src="${v.video}" muted></video>
 <p>${v.title}</p>
 `;
 card.onclick = () => {
 
-modal.classList.remove("hidden");
+const player = document.getElementById("videoPlayer");
 player.src = v.video;
+
+document.getElementById("modal").classList.remove("hidden");
+
 player.play();
 
 };
@@ -29,11 +29,3 @@ gallery.appendChild(card);
 });
 
 });
-
-closeBtn.onclick = () => {
-
-modal.classList.add("hidden");
-player.pause();
-player.src = "";
-
-};
