@@ -7,27 +7,32 @@ on:
     paths-ignore:
       - 'build/**'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create build folder
         run: mkdir -p build
+
       - name: Create ZIP
         run: |
           zip -r build/site.zip . \
-          -x "*.git*" \
-          -x "build/*" \
-          -x "node_modules/*"
+          -x ".git/*" \
+          -x "build/*"
 
       - name: Commit ZIP
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git add build/site.zip
-          git commit -m "auto build zip"
+          git commit -m "auto update zip" || echo "no changes"
           git push
