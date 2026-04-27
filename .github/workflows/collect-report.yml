@@ -1,0 +1,69 @@
+name: Collect Project Report
+
+on:
+  workflow_dispatch:  # اجرای دستی
+  push:
+    branches: [ main, master ]
+
+jobs:
+  collect-report:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Collect all files report
+        run: |
+          echo "# Project Files Report" > project-report.md
+          echo "Generated at: $(date)" >> project-report.md
+          echo "" >> project-report.md
+          
+          echo "## Project Structure" >> project-report.md
+          echo '
+```' >> project-report.md
+tree -L 3 -I 'node_modules|.git' || find . -type f -not -path '*/\.*' -not -path '*/node_modules/*' | sort
+echo '
+```' >> project-report.md
+          echo "" >> project-report.md
+          
+          echo "## File Contents" >> project-report.md
+          echo "" >> project-report.md
+          # جمع‌آوری محتوای تمام فایل‌های مهم
+          find . -type f \
+            -not -path '*/\.*' \
+            -not -path '*/node_modules/*' \
+            -not -path '*/vendor/*' \
+            -not -path '*/.git/*' \
+            -not -name '*.jpg' \
+            -not -name '*.jpeg' \
+            -not -name '*.png' \
+            -not -name '*.gif' \
+            -not -name '*.ico' \
+            -not -name '*.svg' \
+            -not -name '*.mp4' \
+            -not -name '*.webm' \
+            -not -name '*.pdf' \
+            | sort | while read file; do
+            echo "### File: $file" >> project-report.md
+            echo '
+```' >> project-report.md
+cat "$file" >> project-report.md
+echo '
+```' >> project-report.md
+            echo "" >> project-report.md
+          done
+          
+          echo "Report generated successfully!"
+      
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-report
+          path: project-report.md
+          retention-days: 30
+      
+      - name: Display report location
+        run: |
+          echo "✅ Report generated successfully!"
+          echo "📥 Download it from the Actions tab > Artifacts section"
