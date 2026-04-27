@@ -1,0 +1,31 @@
+===== SYSTEM INFO =====
+Linux runnervmeorf1 6.17.0-1010-azure #10~24.04.1-Ubuntu SMP Fri Mar  6 22:00:57 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux
+Python 3.12.3
+v20.20.2
+git version 2.53.0
+
+===== REPO STRUCTURE =====
+.:
+README.md
+build
+debug
+index.html
+script.js
+style.css
+videos.json
+
+./build:
+site.zip
+
+./debug:
+report.txt
+
+===== WORKFLOWS =====
+.github:
+workflows
+
+.github/workflows:
+build-django-site.yml
+build-zip.yml
+collect-report.yml
+repo-debug.yml
