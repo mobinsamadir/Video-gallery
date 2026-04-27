@@ -13,8 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Create debug folder
-        run: |
-          mkdir debug
+        run: mkdir debug
 
       - name: System info
         run: |
@@ -72,8 +71,15 @@ jobs:
           fi
 
       - name: Zip repo snapshot
+        run: zip -r debug/repo-snapshot.zip . -x "*.git*"
+
+      - name: Commit debug files
         run: |
-          zip -r debug/repo-snapshot.zip . -x "*.git*"
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add debug/
+          git commit -m "add debug files" || echo "nothing to commit"
+          git push
 
       - name: Upload debug artifact
         uses: actions/upload-artifact@v4
