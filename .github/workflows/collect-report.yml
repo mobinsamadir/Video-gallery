@@ -2,8 +2,6 @@ name: Collect Project Report
 
 on:
   workflow_dispatch:  # اجرای دستی
-  push:
-    branches: [ main, master ]
 
 jobs:
   collect-report:
