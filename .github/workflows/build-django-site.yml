@@ -1,8 +1,8 @@
-name: Build Django Video Site
+name: Build Django Video Site (Debug)
 
 on:
   push:
-    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,99 +12,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Prepare log folder
+        run: |
+          mkdir -p build
+          touch build/build-log.txt
+          echo "=== BUILD START ===" >> build/build-log.txt
+          date >> build/build-log.txt
 
       - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install deps
         run: |
-          pip install django gunicorn whitenoise
+          echo "Installing Python info..." >> build/build-log.txt
+          python3 --version >> build/build-log.txt 2>&1 || true
 
-      - name: Create Django project if missing
+      - name: Install Django
         run: |
-          if [ ! -f manage.py ]; then
-            django-admin startproject config .
-          fi
-
-      - name: Create gallery app manually
-        run: |
-          mkdir -p gallery
-          touch gallery/__init__.py
-
-      - name: Create folders
-        run: |
-          mkdir -p templates
-          mkdir -p static
-
-      - name: Move existing files
-        run: |
-          if [ -f index.html ]; then mv index.html templates/index.html; fi
-          if [ -f style.css ]; then mv style.css static/style.css; fi
-          if [ -f script.js ]; then mv script.js static/script.js; fi
-          if [ -f videos.json ]; then mv videos.json gallery/videos.json; fi
-
-      - name: Create views
-        run: |
-          cat <<EOF > gallery/views.py
-import json
-from django.shortcuts import render
-from pathlib import Path
-
-def index(request):
-    json_path = Path(__file__).resolve().parent / "videos.json"
-    videos = []
-    if json_path.exists():
-        with open(json_path) as f:
-            videos = json.load(f)
-    return render(request, "index.html", {"videos": videos})
-EOF
-
-      - name: Create urls
-        run: |
-          cat <<EOF > gallery/urls.py
-from django.urls import path
-from .views import index
-
-urlpatterns = [
-    path('', index, name='home'),
-]
-EOF
-
-      - name: Patch project urls
-        run: |
-          sed -i "s/from django.urls import path/from django.urls import path, include/" config/urls.py
-          sed -i "s/urlpatterns = \[/urlpatterns = \[\n    path('', include('gallery.urls')),/" config/urls.py
-
-      - name: Patch settings
-        run: |
-          sed -i "/INSTALLED_APPS = \[/a \ \ \ \ 'gallery'," config/settings.py
-          echo "" >> config/settings.py
-          echo "STATIC_URL = '/static/'" >> config/settings.py
-          echo "STATICFILES_DIRS = [BASE_DIR / 'static']" >> config/settings.py
-          echo "STATIC_ROOT = BASE_DIR / 'staticfiles'" >> config/settings.py
-
-      - name: Collect static
-        run: |
-          python manage.py collectstatic --noinput
-
-      - name: Requirements
-        run: |
-          echo "Django>=4.2" > requirements.txt
-          echo "gunicorn" >> requirements.txt
-          echo "whitenoise" >> requirements.txt
-
-      - name: Build zip
-        run: |
-          mkdir build
-          zip -r build/site.zip . -x "*.git*" "build/*"
-
-      - name: Commit changes
-        run: |
-          git config --global user.name github-actions
-          git config --global user.email actions@github.com
-          git add .
-          git commit -m "Auto build Django site" || echo "No changes"
-          git push
+          echo "Installing dependencies..." >> build/build-log.txt
+          pip install django gunicorn whitenoise >> build/build-log.txt 2>&1 || true
